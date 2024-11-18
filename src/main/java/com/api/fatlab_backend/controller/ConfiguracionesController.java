@@ -1,5 +1,7 @@
 package com.api.fatlab_backend.controller;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -16,8 +18,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.api.fatlab_backend.dto.Configuracion_CargoDTO;
 import com.api.fatlab_backend.dto.Configuracion_TiempoDTO;
+import com.api.fatlab_backend.entity.Cargo;
 import com.api.fatlab_backend.entity.Configuracion_Cargo;
 import com.api.fatlab_backend.entity.Configuracion_Tiempo;
+import com.api.fatlab_backend.service.CargoService;
 import com.api.fatlab_backend.service.Configuracion_CargoService;
 import com.api.fatlab_backend.service.Configuracion_TiempoService;
 
@@ -30,6 +34,9 @@ public class ConfiguracionesController {
 
 	@Autowired
 	private Configuracion_CargoService configuracion_CargoService;
+
+	@Autowired
+	private CargoService cargoService;
 
 	// CRUD Configuracion_Tiempo
 	@GetMapping("/list/configuracion-tiempo")
@@ -72,6 +79,12 @@ public class ConfiguracionesController {
 		return new ResponseEntity<>(listConfiguracionCargo, HttpStatus.OK);
 	}
 
+	@GetMapping("/lista/configuracion-cargo")
+	public ResponseEntity<List<Configuracion_Cargo>> getConfiguracionCargoAll() {
+		List<Configuracion_Cargo> listConfiguracionCargo = configuracion_CargoService.getAllConfiguracionCargos();
+		return new ResponseEntity<>(listConfiguracionCargo, HttpStatus.OK);
+	}
+
 	@PostMapping("/add/configuracion-cargo")
 	public ResponseEntity<?> addConfiguracionCargo(@RequestBody Configuracion_CargoDTO configuracion_CargoDTO) {
 		Configuracion_Cargo configuracion_Cargo = new Configuracion_Cargo(configuracion_CargoDTO.getIgv(),
@@ -92,9 +105,31 @@ public class ConfiguracionesController {
 		return new ResponseEntity<>("Configuración de cargo actualizado", HttpStatus.OK);
 	}
 
+	@PutMapping("/update/configuracion-cargo")
+	public ResponseEntity<?> updateConfiguracionCargo(@RequestBody List<Configuracion_Cargo> cofiguraciones) {
+		for (Configuracion_Cargo configuracion_Cargo : cofiguraciones) {
+			configuracion_CargoService.save(configuracion_Cargo);
+		}
+		
+		return new ResponseEntity<>("Configuración de la lista de cargo actualizado", HttpStatus.OK);
+	}
+
 	@DeleteMapping("/delete/configuracion-cargo/{id}")
 	public ResponseEntity<?> deleteConfiguracionCargo(@PathVariable("id") int id) {
 		configuracion_CargoService.delete(id);
 		return new ResponseEntity<>("Configuración de cargo eliminado", HttpStatus.OK);
+	}
+
+	// CRUD Cargo
+	@GetMapping("lista/cargo")
+	public ResponseEntity<List<Cargo>> listaCargo() {
+		List<Cargo> listaCargo = cargoService.getAll();
+		return new ResponseEntity<>(listaCargo, HttpStatus.OK);
+	}
+
+	@PostMapping("add/cargo")
+	public ResponseEntity<?> addCargo(@RequestBody Cargo cargo) {
+		cargoService.save(cargo);
+		return new ResponseEntity<>("Cargo creado", HttpStatus.CREATED);
 	}
 }

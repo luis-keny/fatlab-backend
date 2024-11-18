@@ -1,5 +1,6 @@
 package com.api.fatlab_backend.service;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +21,10 @@ public class Configuracion_CargoService {
 	public Page<Configuracion_Cargo> getAllConfiguracionCargos(int page, int size) {
 		Pageable pageable = PageRequest.of(page, size);
 		return configuracion_CargoRepository.findAll(pageable);
+	}
+
+	public List<Configuracion_Cargo> getAllConfiguracionCargos() {
+		return configuracion_CargoRepository.findAll();
 	}
 
 	public Optional<Configuracion_Cargo> getOne(int id) {
