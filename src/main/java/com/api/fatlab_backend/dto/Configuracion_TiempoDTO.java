@@ -4,11 +4,11 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
-public class MarcaDTO {
+@NoArgsConstructor
+@AllArgsConstructor
+public class Configuracion_TiempoDTO {
 
-	private String nombre;
-	private Boolean activo;
+	private double precioxminuto;
+
 }

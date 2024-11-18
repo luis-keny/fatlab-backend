@@ -22,17 +22,21 @@ import com.api.fatlab_backend.dto.MantenimientoDTO;
 import com.api.fatlab_backend.dto.MaquinaDTO;
 import com.api.fatlab_backend.dto.MaterialDTO;
 import com.api.fatlab_backend.dto.Seguimiento_InsumoDTO;
+import com.api.fatlab_backend.entity.Categoria_Insumo;
 import com.api.fatlab_backend.entity.Insumo;
 import com.api.fatlab_backend.entity.Mantenimiento;
 import com.api.fatlab_backend.entity.Maquina;
+import com.api.fatlab_backend.entity.Maquina_Impresiones3D;
 import com.api.fatlab_backend.entity.Material;
+import com.api.fatlab_backend.entity.Papeleria_Ploteo;
 import com.api.fatlab_backend.entity.Seguimiento_Insumo;
-import com.api.fatlab_backend.entity.Tipo_Maquina;
-import com.api.fatlab_backend.repository.Tipo_MaquinaRepository;
+import com.api.fatlab_backend.service.Categoria_insumoService;
 import com.api.fatlab_backend.service.InsumoService;
 import com.api.fatlab_backend.service.MantenimientoService;
 import com.api.fatlab_backend.service.MaquinaService;
+import com.api.fatlab_backend.service.Maquina_Impresiones3dService;
 import com.api.fatlab_backend.service.MaterialService;
+import com.api.fatlab_backend.service.Papeleria_PloteoService;
 import com.api.fatlab_backend.service.Seguimiento_InsumoService;
 
 @RestController
@@ -54,6 +58,28 @@ public class InventarioController {
 	@Autowired
 	private Seguimiento_InsumoService seguimiento_InsumoService;
 
+	@Autowired
+	private Maquina_Impresiones3dService maquina_Impresiones3dService;
+
+	@Autowired
+	private Papeleria_PloteoService papeleria_PloteoService;
+
+	@Autowired
+	private Categoria_insumoService configuracion_TiempoService;
+
+	// CRUD Categoria insumo
+	@GetMapping("/list/categoria-insumo")
+	public ResponseEntity<List<Categoria_Insumo>> getCategoriaInsumo() {
+		List<Categoria_Insumo> listConfiguracionTiempo = configuracion_TiempoService.getAllCategoriaInsumos();
+		return new ResponseEntity<>(listConfiguracionTiempo, HttpStatus.OK);
+	}
+
+	@PostMapping("/add/categoria-insumo")
+	public ResponseEntity<?> addCategoriaInsumo(@RequestBody Categoria_Insumo categoria_insumo) {
+		configuracion_TiempoService.saveCategoriaInsumo(categoria_insumo);
+		return new ResponseEntity<>(categoria_insumo, HttpStatus.CREATED);
+	}
+
 	// Maquina CRUD
 	@GetMapping("/list/maquina")
 	public ResponseEntity<Page<Maquina>> getMaquinas(@RequestParam int page,
@@ -62,13 +88,25 @@ public class InventarioController {
 		return new ResponseEntity<>(listMaquina, HttpStatus.OK);
 	}
 
+	@GetMapping("/list/maquinas")
+	public ResponseEntity<List<Maquina>> getAllMaquinas() {
+		List<Maquina> listMaquina = maquinaService.getAll();
+		return new ResponseEntity<>(listMaquina, HttpStatus.OK);
+	}
+
 	@PostMapping("/add/maquina")
 	public ResponseEntity<?> addMaquina(@RequestBody MaquinaDTO maquinaDTO) {
+		Maquina_Impresiones3D maquina3d = maquina_Impresiones3dService.save(maquinaDTO.getMaquina_impresiones3d());
 		Maquina maquina = new Maquina(maquinaDTO.getNombre(),
 				maquinaDTO.getCodigo_upeu(),
+				maquinaDTO.getCoste_maquina(),
+				maquinaDTO.getCoste_amortizacion(),
 				maquinaDTO.getActivo(),
-				maquinaDTO.getTipo_maquina(),
-				maquinaDTO.getEstado_maquina());
+				maquinaDTO.getCategoria_insumo(),
+				maquinaDTO.getEstado_maquina(),
+				maquinaDTO.getInsumo(),
+				maquina3d,
+				maquinaDTO.getPapeleria_ploteo());
 		maquinaService.save(maquina);
 		return new ResponseEntity<>(maquina, HttpStatus.CREATED);
 	}
@@ -78,9 +116,31 @@ public class InventarioController {
 		Maquina maquina = maquinaService.getOne(id).get();
 		maquina.setNombre(maquinaDTO.getNombre());
 		maquina.setCodigo_upeu(maquinaDTO.getCodigo_upeu());
+		maquina.setCoste_maquina(maquinaDTO.getCoste_maquina());
+		maquina.setCoste_amortizacion(maquinaDTO.getCoste_amortizacion());
 		maquina.setActivo(maquinaDTO.getActivo());
-		maquina.setTipo_maquina(maquinaDTO.getTipo_maquina());
+		maquina.setCategoria_insumo(maquinaDTO.getCategoria_insumo());
 		maquina.setEstado_maquina(maquinaDTO.getEstado_maquina());
+		maquina.setInsumo(maquinaDTO.getInsumo());
+
+		// Actualizamos Maquina_impresiones3d si exixte
+		if (maquina.getMaquina_impresiones3d() != null) {
+			Maquina_Impresiones3D impresiones3d = maquina.getMaquina_impresiones3d();
+			impresiones3d.setTipo_inyeccion(maquinaDTO.getMaquina_impresiones3d().getTipo_inyeccion());
+			impresiones3d.setCoste_luzxhora(maquinaDTO.getMaquina_impresiones3d().getCoste_luzxhora());
+			impresiones3d.setArquitectura(maquinaDTO.getMaquina_impresiones3d().getArquitectura());
+			impresiones3d.setPorcentaje_desperdicio(maquinaDTO.getMaquina_impresiones3d().getPorcentaje_desperdicio());
+		} else {
+			maquina.setMaquina_impresiones3d(maquinaDTO.getMaquina_impresiones3d());
+		}
+
+		// Y actualizamos Papeleria_ploteo
+		if (maquina.getPapeleria_ploteo() != null) {
+			Papeleria_Ploteo papeleria_Ploteo = maquina.getPapeleria_ploteo();
+			papeleria_Ploteo.setTipo_tinta(maquinaDTO.getPapeleria_ploteo().getTipo_tinta());
+		} else {
+			maquina.setPapeleria_ploteo(maquinaDTO.getPapeleria_ploteo());
+		}
 		maquinaService.save(maquina);
 		return new ResponseEntity<>("Máquina actualizada", HttpStatus.OK);
 
@@ -88,7 +148,20 @@ public class InventarioController {
 
 	@DeleteMapping("/delete/maquina/{id}")
 	public ResponseEntity<?> deleteMaquina(@PathVariable("id") int id) {
+
+		Maquina maquina = maquinaService.getOne(id).orElseThrow(() -> new RuntimeException("Máquina no encontrada"));
 		maquinaService.delete(id);
+
+		// Aca eliminamos la Maquina_Impresiones3d relacionada
+		if (maquina.getMaquina_impresiones3d() != null) {
+			maquina_Impresiones3dService.delete(maquina.getMaquina_impresiones3d().getMaquina_impresiones3d_id());
+		}
+
+		// Aca eliminamos una máquina de tipo Papeleria_ploteo relacionada
+		if (maquina.getPapeleria_ploteo() != null) {
+			papeleria_PloteoService.delete(maquina.getPapeleria_ploteo().getPapeleria_ploteo_id());
+		}
+
 		return new ResponseEntity<>("Máquina Eliminada", HttpStatus.ACCEPTED);
 	}
 
@@ -100,13 +173,24 @@ public class InventarioController {
 		return new ResponseEntity<>(listInsumo, HttpStatus.OK);
 	}
 
+	@GetMapping("/list/insumo/{id}")
+	public ResponseEntity<List<Insumo>> getAllInsumos(@PathVariable("id") int id) {
+		List<Insumo> listInsumo = insumoService.getAllById(id);
+		return new ResponseEntity<>(listInsumo, HttpStatus.OK);
+	}
+
 	@PostMapping("/add/insumo")
 	public ResponseEntity<?> addInsumo(@RequestBody InsumoDTO insumoDTO) {
 		Insumo insumo = new Insumo(insumoDTO.getNombre(),
 				insumoDTO.getDescripcion(),
 				insumoDTO.getUnidad_medida(),
+				insumoDTO.getMarca(),
+				insumoDTO.getPrecio_xunidad(),
+				insumoDTO.getCantidad_total(),
 				insumoDTO.getActivo(),
-				insumoDTO.getMarca());
+				insumoDTO.getCoste_insumo(),
+				insumoDTO.getCategoria_insumo());
+
 		insumoService.save(insumo);
 		return new ResponseEntity<>(insumo, HttpStatus.CREATED);
 	}
@@ -117,8 +201,12 @@ public class InventarioController {
 		insumo.setNombre(insumoDTO.getNombre());
 		insumo.setDescripcion(insumoDTO.getDescripcion());
 		insumo.setUnidad_medida(insumoDTO.getUnidad_medida());
-		insumo.setActivo(insumoDTO.getActivo());
 		insumo.setMarca(insumoDTO.getMarca());
+		insumo.setPrecio_xunidad(insumoDTO.getPrecio_xunidad());
+		insumo.setCantidad_total(insumoDTO.getCantidad_total());
+		insumo.setActivo(insumoDTO.getActivo());
+		insumo.setCoste_insumo(insumoDTO.getCoste_insumo());
+		insumo.setCategoria_insumo(insumoDTO.getCategoria_insumo());
 		insumoService.save(insumo);
 		return new ResponseEntity<>("Insumo actualizado", HttpStatus.OK);
 	}

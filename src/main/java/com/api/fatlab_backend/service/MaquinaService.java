@@ -1,5 +1,6 @@
 package com.api.fatlab_backend.service;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,10 @@ public class MaquinaService {
 
 	@Autowired
 	private MaquinaRepository maquinaRepository;
+
+	public List<Maquina> getAll() {
+		return maquinaRepository.findAll();
+	}
 
 	// Con esto listamos pero por paginación
 	public Page<Maquina> getAllMaquina(int page, int size) {

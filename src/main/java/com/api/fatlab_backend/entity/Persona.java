@@ -1,5 +1,6 @@
 package com.api.fatlab_backend.entity;
 
+import java.util.Date;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -16,21 +17,23 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Data
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
+@Data
 @Entity
-@Table(name = "marca")
-public class Marca {
+@Table(name = "persona")
+public class Persona {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private int marca_id;
+	private int persona_id;
 	private String nombre;
-	private Boolean activo;
+	private String apellido;
+	private Date fecha_nacimiento;
+	private String codigo;
+	private String email;
 
-	@OneToMany(mappedBy = "marca", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+	@OneToMany(mappedBy = "persona", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
 	@JsonIgnore
-	private List<Insumo> insumo;
-
+	private List<Pedido> pedido;
 }

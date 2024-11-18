@@ -1,5 +1,6 @@
 package com.api.fatlab_backend.service;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +22,10 @@ public class InsumoService {
 	public Page<Insumo> getAllInsumos(int page, int size) {
 		Pageable pageable = PageRequest.of(page, size);
 		return insumoRepository.findAll(pageable);
+	}
+
+	public List<Insumo> getAllById(int id) {
+		return insumoRepository.findAllByIdCategoria(id);
 	}
 
 	public Optional<Insumo> getOne(int id) {

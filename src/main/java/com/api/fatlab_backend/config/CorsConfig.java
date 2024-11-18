@@ -14,10 +14,12 @@ public class CorsConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
-                        .allowedOrigins("http://localhost:4200", "https://fatlab-app-web.vercel.app")
+                        // .allowedOrigins("http://localhost:4200", "https://fatlab-app-web.vercel.app")
+                        .allowedOrigins("*")
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("*")
-                        .allowCredentials(true);
+                        // .allowCredentials(true);
+                        .allowCredentials(false);
             }
         };
     }
